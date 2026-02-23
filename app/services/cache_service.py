@@ -1,5 +1,7 @@
 import json
 import redis
+from ..redis_utils import build_redis_url_from_env
+
 
 class CacheService:
     def __init__(self, app=None):
@@ -8,13 +10,13 @@ class CacheService:
             self.init_app(app)
 
     def init_app(self, app):
-        redis_url = app.config.get('REDIS_URL', 'redis://localhost:6379/0')
+        redis_url = app.config.get('REDIS_URL') or build_redis_url_from_env()
         try:
             self.client = redis.from_url(redis_url)
             # Test connection
             self.client.ping()
         except Exception as e:
-            print(f"No se pudo conectar a Redis: {e}")
+            app.logger.warning(f"No se pudo conectar a Redis para caché: {e}")
             self.client = None
 
     def get(self, key):
@@ -61,6 +63,7 @@ class CacheService:
         except Exception as e:
             print(f"Error al limpiar prefijo de caché ({prefix}): {e}")
         return False
+
 
 # Instancia global para ser inicializada en create_app
 cache_service = CacheService()

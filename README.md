@@ -46,6 +46,17 @@ cp .env.example .env
 
 Editar el archivo `.env` con tus credenciales de base de datos, correo y MinIO.
 
+Variables Redis soportadas:
+
+- `REDIS_URL` (opcional, tiene prioridad si se define).
+- `REDIS_HOST` (default `redis`).
+- `REDIS_PORT` (default `6379`).
+- `REDIS_DB` (default `0`).
+- `REDIS_PASSWORD` (opcional).
+
+Si usas password en Redis y no defines `REDIS_URL`, la app construye automáticamente:
+`redis://:PASSWORD@HOST:PORT/DB`
+
 ### 4. Inicializar Base de Datos
 
 Asegurate de que MariaDB esté corriendo y la base de datos `buzon_db` (o la que hayas puesto en .env) exista.

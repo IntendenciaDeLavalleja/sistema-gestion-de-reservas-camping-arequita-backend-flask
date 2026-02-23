@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from .redis_utils import build_redis_url_from_env
 
 load_dotenv()
 
@@ -36,6 +37,13 @@ class Config:
     FRONTEND_URL = os.environ.get('FRONTEND_URL') or 'http://localhost:5173'
 
     # Redis Settings
-    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    REDIS_HOST = os.environ.get('REDIS_HOST', 'redis')
+    REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
+    REDIS_DB = os.environ.get('REDIS_DB', '0')
+    REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
+    REDIS_URL = build_redis_url_from_env(os.environ)
+
+    # Flask-Limiter
+    RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
 
     CORS_ALLOWED_ORIGINS = _parse_list_from_env('CORS_ORIGINS')
