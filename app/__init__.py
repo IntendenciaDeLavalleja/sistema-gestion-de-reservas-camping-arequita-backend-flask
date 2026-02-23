@@ -34,6 +34,10 @@ def create_app(config_class=Config):
     init_metrics(app)
 
     # Registrar blueprints
+    from app.health import health_bp
+    csrf.exempt(health_bp)
+    app.register_blueprint(health_bp)
+
     from app.api import api_bp
     csrf.exempt(api_bp) # Eximir API de protección CSRF (usa tokens Bearer)
     app.register_blueprint(api_bp, url_prefix='/api')
