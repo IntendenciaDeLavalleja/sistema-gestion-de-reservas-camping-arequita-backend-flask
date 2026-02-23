@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8">
+  <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Testimonios</h1>
+  <p class="mt-2 text-slate-500">Gestiona los testimonios de los clientes y su visibilidad en el portal.</p>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+  <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-fit">
+    <h2 class="text-xl font-bold mb-1">Nuevo testimonio</h2>
+    <p class="text-sm text-slate-500 mb-6">Carga testimonios recibidos por otros medios o de forma manual.</p>
+    
+    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block mb-1 text-sm font-semibold text-slate-700">Nombre del Autor *</label>
+          <input type="text" name="author_name" placeholder="Ej: Juan Pérez" class="input input-bordered w-full" required />
+        </div>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-sm font-semibold text-slate-700">Producto asociado</label>
+        <select name="service_id" class="select select-bordered w-full">
+          <option value="">Ninguno / General</option>
+          {% for service in services %}
+          <option value="{{ service.id }}">{{ service.name_es }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="space-y-3">
+        <label class="block text-sm font-semibold text-slate-700">Comentarios en 3 idiomas *</label>
+        <textarea name="comment_es" placeholder="Comentario en Español..." class="textarea textarea-bordered w-full" rows="2" required></textarea>
+        <textarea name="comment_en" placeholder="Comment in English..." class="textarea textarea-bordered w-full" rows="2" required></textarea>
+        <textarea name="comment_pt" placeholder="Comentário em Português..." class="textarea textarea-bordered w-full" rows="2" required></textarea>
+      </div>
+
+      <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
+        <label class="block mb-2 text-sm font-semibold text-blue-900">Imagen del Autor / Experiencia (WEBP)</label>
+        <input type="file" name="image" accept="image/webp" class="file-input file-input-bordered w-full" />
+        <p class="mt-1 text-xs text-blue-600">Tamaño recomendado: <strong>800x600px</strong> (Relación aspecto 4:3).</p>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <label class="label cursor-pointer justify-start gap-3">
+          <input type="checkbox" name="is_published" class="checkbox checkbox-primary" checked /> 
+          <span class="font-medium text-slate-700">Publicar inmediatamente</span>
+        </label>
+        <button type="submit" class="btn btn-primary px-8">Guardar testimonio</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="space-y-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h2 class="text-lg font-bold mb-3 text-slate-800">Estadísticas</h2>
+      <div class="grid grid-cols-1 gap-3">
+        <div class="bg-slate-50 p-3 rounded-lg flex justify-between items-baseline">
+          <span class="text-sm text-slate-500">Total</span>
+          <span class="text-xl font-bold text-slate-900">{{ testimonials|length }}</span>
+        </div>
+        <div class="bg-emerald-50 p-3 rounded-lg flex justify-between items-baseline">
+          <span class="text-sm text-emerald-600 font-medium">Publicadas</span>
+          <span class="text-xl font-bold text-emerald-700">{{ (testimonials|selectattr('is_published')|list)|length }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <h2 class="text-lg font-bold mb-2 text-slate-800">Info rápida</h2>
+      <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+        <li>Los testimonios aportan confianza a nuevos visitantes.</li>
+        <li>Procura que tengan foto para generar confianza.</li>
+        <li>Si el comentario no es constructivo, puedes desmarcar "Publicada" para ocultarlo.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="mt-8 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 border-b border-slate-200">
+      <tr>
+        <th class="p-4 text-left font-semibold text-slate-700">Foto / Autor</th>
+        <th class="p-4 text-left font-semibold text-slate-700">Producto</th>
+        <th class="p-4 text-left font-semibold text-slate-700">Estado</th>
+        <th class="p-4 text-left font-semibold text-slate-700">Acciones</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for testimonial in testimonials %}
+      <tr class="hover:bg-slate-50/50 transition-colors">
+        <td class="p-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-slate-100 shrink-0">
+              {% if testimonial.image_url %}
+              <img src="{{ testimonial.image_url }}" class="w-full h-full object-cover">
+              {% else %}
+              <div class="w-full h-full flex items-center justify-center text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              {% endif %}
+            </div>
+            <span class="font-semibold text-slate-900">{{ testimonial.author_name }}</span>
+          </div>
+        </td>
+        <td class="p-4 text-slate-600">{{ testimonial.service.name_es if testimonial.service else 'General' }}</td>
+        <td class="p-4">
+          {% if testimonial.is_published %}
+          <span class="badge badge-success badge-sm border-none bg-emerald-100 text-emerald-700 font-bold uppercase">Publicada</span>
+          {% else %}
+          <span class="badge badge-ghost badge-sm border-none bg-slate-100 text-slate-500 font-bold uppercase">Oculta</span>
+          {% endif %}
+        </td>
+        <td class="p-4">
+          <div class="flex items-center gap-4">
+            <a href="{{ url_for('admin.edit_camping_testimonial', testimonial_id=testimonial.id) }}" class="btn btn-xs btn-info btn-outline">Editar</a>
+            <form method="POST" action="{{ url_for('admin.delete_camping_testimonial', testimonial_id=testimonial.id) }}" onsubmit="return confirm('¿Eliminar este testimonio definitivamente?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button class="btn btn-xs btn-error btn-outline">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="p-10 text-center text-slate-400 bg-slate-50/50">Todavía no hay testimonios cargados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

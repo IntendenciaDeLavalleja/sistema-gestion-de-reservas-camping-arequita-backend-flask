@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8">
+  <div class="flex items-center gap-2 text-sm text-slate-500 mb-2">
+    <a href="{{ url_for('admin.dashboard') }}" class="hover:text-primary">Dashboard</a>
+    <span>/</span>
+    <a href="{{ url_for('admin.camping_services') }}" class="hover:text-primary">Productos</a>
+    <span>/</span>
+    <span class="text-slate-900 font-medium">Editar {{ service.slug }}</span>
+  </div>
+  <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Editar Producto</h1>
+  <p class="mt-2 text-slate-500">Modifica los detalles de <strong>{{ service.name_es }}</strong>.</p>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+  <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+    <form method="POST" enctype="multipart/form-data" class="space-y-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-slate-700">Slug *</label>
+          <input type="text" name="slug" value="{{ service.slug }}" class="input input-bordered w-full" required />
+          <p class="text-xs text-slate-400 mt-1">Identificador único para URL y consultas internas.</p>
+        </div>
+        <div>
+          <label class="block mb-2 text-sm font-semibold text-slate-700">Tipo de producto *</label>
+          <select name="service_type" class="select select-bordered w-full" required>
+            <option value="cabin" {{ 'selected' if service.service_type == 'cabin' }}>Cabaña</option>
+            <option value="motorhome" {{ 'selected' if service.service_type == 'motorhome' }}>Motorhome</option>
+            <option value="camping" {{ 'selected' if service.service_type == 'camping' }}>Parcela</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-slate-200 p-4">
+        <h3 class="font-semibold text-slate-800 mb-3">Textos multilenguaje</h3>
+        <div class="grid grid-cols-1 gap-3">
+          <input type="text" name="name_es" value="{{ service.name_es }}" placeholder="Nombre (ES) *" class="input input-bordered w-full" required />
+          <input type="text" name="name_en" value="{{ service.name_en }}" placeholder="Nombre (EN) *" class="input input-bordered w-full" required />
+          <input type="text" name="name_pt" value="{{ service.name_pt }}" placeholder="Nombre (PT) *" class="input input-bordered w-full" required />
+          <textarea name="description_es" placeholder="Descripción (ES) *" class="textarea textarea-bordered w-full" rows="3" required>{{ service.description_es }}</textarea>
+          <textarea name="description_en" placeholder="Descripción (EN) *" class="textarea textarea-bordered w-full" rows="3" required>{{ service.description_en }}</textarea>
+          <textarea name="description_pt" placeholder="Descripción (PT) *" class="textarea textarea-bordered w-full" rows="3" required>{{ service.description_pt }}</textarea>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-slate-200 p-4">
+        <h3 class="font-semibold text-slate-800 mb-3">Capacidad, precio y disponibilidad</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1 text-sm text-slate-600">Precio</label>
+            <input type="number" min="0" name="price" value="{{ service.price }}" class="input input-bordered w-full" />
+          </div>
+          <div>
+            <label class="block mb-1 text-sm text-slate-600">Moneda</label>
+            <input type="text" name="currency" value="{{ service.currency }}" class="input input-bordered w-full" />
+          </div>
+          <div>
+            <label class="block mb-1 text-sm text-slate-600">Capacidad máxima</label>
+            <input type="number" min="1" name="capacity" value="{{ service.capacity }}" class="input input-bordered w-full" />
+          </div>
+          <div>
+            <label class="block mb-1 text-sm text-slate-600">Unidades totales</label>
+            <input type="number" min="0" name="total_units" value="{{ service.total_units }}" class="input input-bordered w-full" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block mb-1 text-sm text-slate-600">Unidades disponibles actualmente</label>
+            <input type="number" min="0" name="available_units" value="{{ service.available_units }}" class="input input-bordered w-full" />
+            <p class="text-xs text-info mt-1 italic">Este valor se reduce automáticamente al confirmar reservas.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-slate-200 p-4">
+        <h3 class="font-semibold text-slate-800 mb-3">Comodidades y estado</h3>
+        <p class="text-xs text-slate-400 mb-3">Selecciona las comodidades disponibles para este alojamiento.</p>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-4">
+          {% for amenity in available_amenities %}
+          <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors">
+            <input type="checkbox" name="amenity_ids" value="{{ amenity.id }}" class="checkbox checkbox-sm checkbox-primary" 
+                   {{ 'checked' if amenity in service.amenities }}>
+            <span class="text-lg">{{ amenity.icon }}</span>
+            <span class="text-sm text-slate-700">{{ amenity.name_es }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        
+        {% if not available_amenities %}
+        <div class="p-4 bg-amber-50 rounded-lg border border-amber-100 text-amber-700 text-sm mb-4">
+            No has creado comodidades todavía. <a href="{{ url_for('admin.camping_amenities') }}" class="font-bold underline">Crea algunas aquí</a>.
+        </div>
+        {% endif %}
+
+        <div class="mt-3 flex flex-wrap items-center gap-5 pt-3 border-t border-slate-100">
+          <label class="label cursor-pointer justify-start gap-2 p-0"><input type="checkbox" name="is_featured" class="checkbox" {{ 'checked' if service.is_featured }} /> <span>Destacado</span></label>
+          <label class="label cursor-pointer justify-start gap-2 p-0"><input type="checkbox" name="is_promo" class="checkbox" {{ 'checked' if service.is_promo }} /> <span>Promo</span></label>
+          <label class="label cursor-pointer justify-start gap-2 p-0"><input type="checkbox" name="is_active" class="checkbox" {{ 'checked' if service.is_active }} /> <span>Activo</span></label>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-slate-200 p-4">
+        <h3 class="font-semibold text-slate-800 mb-1">Galería del producto (WEBP)</h3>
+        <p class="text-xs text-slate-400 mb-4">Administra las fotos del producto (máximo 3). Tamaño recomendado: <strong>1200x800px</strong>.</p>
+        
+        <!-- Imágenes Existentes -->
+        <div class="flex flex-wrap gap-4 mb-6">
+          {% for img in service.images.all() %}
+          <div class="group relative w-32 h-24 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+            <img src="{{ img.url }}" class="w-full h-full object-cover" />
+            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <button type="button" 
+                      data-modal-target="delete-modal" 
+                      data-modal-toggle="delete-modal"
+                      onclick="prepareDelete('{{ url_for('admin.delete_service_image', image_id=img.id) }}')"
+                      class="btn btn-xs btn-circle btn-error">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+            <span class="absolute bottom-0 left-0 bg-slate-800/80 text-white text-[10px] px-1.5 py-0.5">FOTO #{{ loop.index }}</span>
+          </div>
+          {% endfor %}
+          
+          {% if service.images.count() < 3 %}
+          <div class="w-32 h-24 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span class="text-[10px] font-bold">DISPONIBLE</span>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if service.images.count() < 3 %}
+        <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4">
+          <p class="text-sm text-blue-700">
+            <strong>Subir nuevas fotos:</strong> Tienes espacio para {{ 3 - service.images.count() }} imagen(es) más. 
+          </p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-{{ 3 - service.images.count() }} gap-3">
+          {% for i in range(3 - service.images.count()) %}
+          <div>
+            <label class="block mb-2 text-sm font-medium text-slate-700">Seleccionar archivo</label>
+            <input type="file" name="images" accept="image/webp" class="file-input file-input-bordered w-full" />
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-amber-50 border border-amber-100 rounded-lg p-3">
+          <p class="text-sm text-amber-700">
+            Has alcanzado el límite de <strong>3 imágenes</strong>. Borra alguna para subir una nueva.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="flex gap-3">
+        <button type="submit" class="btn btn-primary flex-1">Guardar cambios</button>
+        <a href="{{ url_for('admin.camping_services') }}" class="btn btn-ghost">Cancelar</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-fit">
+    <h2 class="text-lg font-bold mb-3">Control de Stock</h2>
+    <div class="space-y-4">
+      <div class="bg-slate-50 p-4 rounded-xl">
+        <p class="text-xs text-slate-500 uppercase font-bold mb-1">Disponibilidad Actual</p>
+        <p class="text-2xl font-black text-slate-900">{{ service.available_units }} <span class="text-sm font-normal text-slate-400">/ {{ service.total_units }} unidades</span></p>
+      </div>
+      <p class="text-sm text-slate-600">
+        Cuando confirmas una <strong>Pre-Reserva</strong> desde el panel de reservas, este número baja automáticamente en 1.
+      </p>
+      <div class="divider"></div>
+      <h3 class="font-bold text-slate-800 text-sm mb-2">Consejos de visibilidad</h3>
+      <ul class="text-sm text-slate-600 space-y-2">
+        <li class="flex gap-2"><span>✅</span> <span>Usa el <strong>Slug</strong> para promociones directas.</span></li>
+        <li class="flex gap-2"><span>✅</span> <span>Los productos <strong>Destacados</strong> aparecen en el carrusel de inicio.</span></li>
+        <li class="flex gap-2"><span>✅</span> <span>Mantén las descripciones actualizadas para buscadores.</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div id="delete-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-3xl shadow">
+            <button type="button" class="absolute top-3 end-2.5 text-slate-400 bg-transparent hover:bg-slate-200 hover:text-slate-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="delete-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Cerrar modal</span>
+            </button>
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-rose-500 w-12 h-12" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-bold text-slate-800">¿Borrar esta imagen definitivamente?</h3>
+                <p class="mb-5 text-sm text-slate-500">Esta acción no se puede deshacer y la imagen se borrará permanentemente de MinIO.</p>
+                <form id="delete-form" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="text-white bg-rose-600 hover:bg-rose-800 focus:ring-4 focus:outline-none focus:ring-rose-300 font-bold rounded-full text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                        Sí, eliminar
+                    </button>
+                    <button data-modal-hide="delete-modal" type="button" class="text-slate-500 bg-white hover:bg-slate-100 focus:ring-4 focus:outline-none focus:ring-slate-200 rounded-full border border-slate-200 text-sm font-bold px-5 py-2.5 hover:text-slate-900 focus:z-10">
+                        No, cancelar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function prepareDelete(url) {
+        document.getElementById('delete-form').action = url;
+    }
+</script>
+{% endblock %}

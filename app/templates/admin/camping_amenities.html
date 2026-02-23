@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8">
+  <div class="flex items-center gap-2 text-sm text-slate-500 mb-2">
+    <a href="{{ url_for('admin.dashboard') }}" class="hover:text-primary">Dashboard</a>
+    <span>/</span>
+    <span class="text-slate-900 font-medium">Configuración de Comodidades</span>
+  </div>
+  <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Crear Comodidades</h1>
+  <p class="mt-2 text-slate-500">Gestiona las amenidades y servicios que se muestran en los productos.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Formulario -->
+  <div class="lg:col-span-1">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-6">
+      <h2 class="text-lg font-bold mb-4" id="form-title">Nueva Comodidad</h2>
+      <form method="POST" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="amenity_id" id="amenity_id" value="" />
+        
+        <div>
+          <label class="block mb-1 text-sm font-semibold text-slate-700">Nombre (ES) *</label>
+          <input type="text" name="name_es" id="name_es" class="input input-bordered w-full" required />
+        </div>
+        <div>
+          <label class="block mb-1 text-sm font-semibold text-slate-700">Nombre (EN)</label>
+          <input type="text" name="name_en" id="name_en" class="input input-bordered w-full" />
+        </div>
+        <div>
+          <label class="block mb-1 text-sm font-semibold text-slate-700">Nombre (PT)</label>
+          <input type="text" name="name_pt" id="name_pt" class="input input-bordered w-full" />
+        </div>
+        
+        <div>
+          <label class="block mb-2 text-sm font-bold text-slate-700">Icono actual</label>
+          <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 mb-4 transition-all" id="icon-preview-container">
+            <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-4xl shadow-sm border border-slate-100" id="current-icon-display">
+              ✨
+            </div>
+            <div class="flex-1">
+              <input type="hidden" name="icon" id="icon" value="✨" />
+              <p class="text-xs text-slate-500 leading-tight">Selecciona un emoji de la galería para cambiar el icono de esta comodidad.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-6 gap-2 h-44 overflow-y-auto p-3 border border-slate-200 rounded-2xl bg-white scrollbar-thin scrollbar-thumb-slate-200">
+            {% for emoji in emojis %}
+            <button type="button" 
+                    onclick="selectEmoji('{{ emoji }}')" 
+                    class="hover:bg-primary/10 hover:scale-110 p-2 rounded-xl transition-all text-2xl flex items-center justify-center">
+              {{ emoji }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="submit" class="btn btn-primary flex-1">Guardar</button>
+          <button type="button" onclick="resetForm()" class="btn btn-ghost">Limpiar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div class="lg:col-span-2">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-200">
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 w-24 text-center">Icono</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Nombre</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Traducciones</th>
+              <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {% for amenity in amenities %}
+            <tr class="hover:bg-slate-50 transition-colors group">
+              <td class="px-6 py-5 text-center">
+                <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-3xl shadow-sm mx-auto group-hover:scale-110 transition-transform">
+                  {{ amenity.icon }}
+                </div>
+              </td>
+              <td class="px-6 py-5">
+                <div class="font-bold text-slate-900 text-lg">{{ amenity.name_es }}</div>
+              </td>
+              <td class="px-6 py-5">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">EN</span>
+                    <span class="text-sm text-slate-600">{{ amenity.name_en or '-' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">PT</span>
+                    <span class="text-sm text-slate-600">{{ amenity.name_pt or '-' }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-5 text-right">
+                <div class="flex justify-end gap-2">
+                    <button onclick='editAmenity({{ amenity|tojson }})' class="btn btn-ghost hover:bg-primary/10 text-primary font-bold">
+                        Editar
+                    </button>
+                    <form method="POST" action="{{ url_for('admin.delete_camping_amenity', amenity_id=amenity.id) }}" onsubmit="return confirm('¿Eliminar esta comodidad? Se quitará de todos los productos.');" class="inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="btn btn-ghost hover:bg-rose-50 text-error font-bold">
+                            Eliminar
+                        </button>
+                    </form>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4" class="text-center py-12 text-slate-400">
+                No hay comodidades creadas todavía.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function selectEmoji(emoji) {
+    document.getElementById('icon').value = emoji;
+    document.getElementById('current-icon-display').innerText = emoji;
+    
+    // Feedback visual
+    const container = document.getElementById('icon-preview-container');
+    container.classList.add('ring-2', 'ring-primary', 'border-solid');
+    setTimeout(() => container.classList.remove('ring-2', 'ring-primary'), 500);
+}
+
+function editAmenity(amenity) {
+    document.getElementById('form-title').innerText = 'Editar Comodidad';
+    document.getElementById('amenity_id').value = amenity.id;
+    document.getElementById('name_es').value = amenity.name_es;
+    document.getElementById('name_en').value = amenity.name_en || '';
+    document.getElementById('name_pt').value = amenity.name_pt || '';
+    document.getElementById('icon').value = amenity.icon;
+    document.getElementById('current-icon-display').innerText = amenity.icon;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetForm() {
+    document.getElementById('form-title').innerText = 'Nueva Comodidad';
+    document.getElementById('amenity_id').value = '';
+    document.getElementById('name_es').value = '';
+    document.getElementById('name_en').value = '';
+    document.getElementById('name_pt').value = '';
+    document.getElementById('icon').value = '✨';
+    document.getElementById('current-icon-display').innerText = '✨';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Listado de Reservas</h1>
+    <p class="mt-2 text-slate-500">Consulta y gestiona los turnos tomados por los ciudadanos.</p>
+</div>
+
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-900">Crear reserva manual</h2>
+        <span class="text-xs font-bold uppercase text-slate-400">Origen: Admin</span>
+    </div>
+    <form class="grid grid-cols-1 md:grid-cols-3 gap-4" method="POST" action="{{ url_for('admin.reservations') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="md:col-span-3">
+            <label class="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Turno disponible</label>
+            <select name="slot_id" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2.5" required>
+                <option value="">Seleccionar turno</option>
+                {% for slot in available_slots %}
+                <option value="{{ slot.id }}">
+                    {{ slot.date.strftime('%d/%m/%Y') }} {{ slot.time.strftime('%H:%M') }} · {{ slot.procedure.name }} · {{ slot.locality.name }} ({{ slot.current_bookings }}/{{ slot.max_capacity }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Cédula</label>
+            <input type="text" name="ci" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2.5" required />
+        </div>
+        <div>
+            <label class="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre</label>
+            <input type="text" name="first_name" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2.5" required />
+        </div>
+        <div>
+            <label class="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Apellido</label>
+            <input type="text" name="last_name" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2.5" required />
+        </div>
+        <div>
+            <label class="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Email</label>
+            <input type="email" name="email" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2.5" required />
+        </div>
+        <div>
+            <label class="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Estado inicial</label>
+            <select name="status" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2.5">
+                <option value="pending" selected>Pendiente</option>
+                <option value="confirmed">Confirmada</option>
+            </select>
+        </div>
+        <div class="md:col-span-3 flex justify-end">
+            <button type="submit" class="btn btn-primary">Crear reserva</button>
+        </div>
+    </form>
+</div>
+
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
+    <form class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end" method="GET" action="{{ url_for('admin.reservations') }}">
+        <div>
+            <label class="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</label>
+            <select name="status" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Activos</option>
+                <option value="attended" {% if status_filter == 'attended' %}selected{% endif %}>Efectivizados</option>
+                <option value="no_show" {% if status_filter == 'no_show' %}selected{% endif %}>No efectivizados</option>
+                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelados</option>
+            </select>
+        </div>
+        <div>
+            <label class="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Buscar</label>
+            <input type="text" name="search" value="{{ search }}" placeholder="Código, email o CI" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <button type="submit" formaction="{{ url_for('admin.export_reservations') }}" formmethod="GET" class="btn btn-success" title="Exportar CSV">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                CSV
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="bg-white shadow-sm rounded-3xl overflow-hidden border border-slate-100">
+    <table class="w-full text-sm text-left text-slate-500">
+        <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+            <tr>
+                <th scope="col" class="px-6 py-3">Código</th>
+                <th scope="col" class="px-6 py-3">Ciudadano</th>
+                <th scope="col" class="px-6 py-3">Trámite</th>
+                <th scope="col" class="px-6 py-3">Fecha y Hora</th>
+                <th scope="col" class="px-6 py-3">Localidad</th>
+                <th scope="col" class="px-6 py-3">Estado</th>
+                <th scope="col" class="px-6 py-3">Origen</th>
+                <th scope="col" class="px-6 py-3">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for res in reservations %}
+            <tr class="bg-white border-b hover:bg-slate-50">
+                <td class="px-6 py-4 font-bold text-slate-900">{{ res.code }}</td>
+                <td class="px-6 py-4">
+                    <div class="font-medium text-slate-900">{{ res.first_name }} {{ res.last_name }}</div>
+                    <div class="text-xs text-slate-400">{{ res.email }} | CI: {{ res.ci }}</div>
+                </td>
+                <td class="px-6 py-4">{{ res.procedure.name }}</td>
+                <td class="px-6 py-4">
+                    <div class="font-medium text-slate-900">{{ res.slot.date.strftime('%d/%m/%Y') }}</div>
+                    <div class="text-xs text-slate-400">{{ res.slot.time.strftime('%H:%M') }} hs</div>
+                </td>
+                <td class="px-6 py-4">{{ res.slot.locality.name }}</td>
+                <td class="px-6 py-4">
+                    {% if res.status == 'confirmed' %}
+                        <span class="badge badge-success badge-outline">Activo</span>
+                    {% elif res.status == 'pending' %}
+                        <span class="badge badge-warning badge-outline">Activo</span>
+                    {% elif res.status == 'attended' %}
+                        <span class="badge badge-primary badge-outline">Efectivizado</span>
+                    {% elif res.status == 'expired' %}
+                        <span class="badge badge-ghost badge-outline">No efectivizado</span>
+                    {% elif res.status == 'cancelled' %}
+                        <span class="badge badge-error badge-outline">Cancelado</span>
+                    {% else %}
+                        <span class="badge badge-outline">{{ res.status }}</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    {% if res.source == 'admin' %}
+                        <span class="badge badge-info badge-outline">Admin</span>
+                    {% else %}
+                        <span class="badge badge-ghost badge-outline">Web</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    {% if status_filter == 'active' %}
+                    <div class="flex items-center gap-3">
+                        <form action="{{ url_for('admin.mark_reservation_attended', id=res.id, status=status_filter) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-xs btn-success btn-outline">Efectivizar</button>
+                        </form>
+                        <form action="{{ url_for('admin.mark_reservation_no_show', id=res.id, status=status_filter) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-xs btn-warning btn-outline">No efectivizado</button>
+                        </form>
+                        <form action="{{ url_for('admin.cancel_reservation', id=res.id, status=status_filter) }}" method="POST" onsubmit="return confirm('¿Cancelar esta reserva?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-xs btn-error btn-outline">Cancelar</button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <span class="text-xs text-slate-400">Sin acciones</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="px-6 py-10 text-center">No hay reservas registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if pagination.pages > 1 %}
+<div class="flex justify-center mt-8">
+    <nav class="inline-flex -space-x-px">
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+                <a href="{{ url_for('admin.reservations', page=p, status=status_filter, search=search) }}" class="btn btn-sm {% if p == pagination.page %}btn-primary{% else %}btn-outline{% endif %}">
+                    {{ p }}
+                </a>
+            {% else %}
+                <span class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300">...</span>
+            {% endif %}
+        {% endfor %}
+    </nav>
+</div>
+{% endif %}
+{% endblock %}

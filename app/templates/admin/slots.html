@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Configuración de Turnos</h1>
+        <p class="mt-2 text-slate-500">Define los horarios disponibles por localidad.</p>
+    </div>
+    <button data-modal-target="add-slot-modal" data-modal-toggle="add-slot-modal" class="btn btn-primary">
+        Nuevo Horario
+    </button>
+</div>
+
+<!-- Filtros -->
+<div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 mb-8 flex gap-4">
+    <form class="flex gap-4 items-end flex-wrap">
+        <div>
+            <label class="block mb-1 text-xs font-bold text-slate-400 uppercase">Localidad</label>
+            <select name="locality_id" class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-2">
+                <option value="">Todas</option>
+                {% for loc in localities %}
+                <option value="{{ loc.id }}" {% if request.args.get('locality_id') == loc.id|string %}selected{% endif %}>{{ loc.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block mb-1 text-xs font-bold text-slate-400 uppercase">Fecha</label>
+            <input type="date" name="date" value="{{ request.args.get('date', '') }}" class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-2">
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary">Filtrar</button>
+        <a href="{{ url_for('admin.slots') }}" class="btn btn-sm btn-ghost">Limpiar</a>
+    </form>
+</div>
+
+<div class="bg-white shadow-sm rounded-3xl overflow-hidden border border-slate-100">
+    <table class="w-full text-sm text-left text-slate-500">
+        <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+            <tr>
+                <th scope="col" class="px-6 py-3">Localidad</th>
+                <th scope="col" class="px-6 py-3">Trámite</th>
+                <th scope="col" class="px-6 py-3">Fecha</th>
+                <th scope="col" class="px-6 py-3">Horario</th>
+                <th scope="col" class="px-6 py-3">Capacidad</th>
+                <th scope="col" class="px-6 py-3">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot in slots %}
+            <tr class="bg-white border-b hover:bg-slate-50">
+                <td class="px-6 py-4 font-medium text-slate-900">{{ slot.locality.name }}</td>
+                <td class="px-6 py-4">{{ slot.procedure.name }}</td>
+                <td class="px-6 py-4">{{ slot.date.strftime('%d/%m/%Y') }}</td>
+                <td class="px-6 py-4">{{ slot.time.strftime('%H:%M') }}</td>
+                <td class="px-6 py-4">
+                    <span class="{% if slot.current_bookings >= slot.max_capacity %}text-red-600 font-bold{% else %}text-emerald-600{% endif %}">
+                        {{ slot.current_bookings }} / {{ slot.max_capacity }}
+                    </span>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <a href="{{ url_for('admin.edit_slot', id=slot.id) }}" class="btn btn-xs btn-info btn-outline">Editar</a>
+                        <form action="{{ url_for('admin.delete_slot', id=slot.id) }}" method="POST" onsubmit="return confirm('¿Eliminar este turno?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-xs btn-error btn-outline">Eliminar</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="px-6 py-10 text-center">No hay turnos configurados con estos filtros.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div id="add-slot-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-3xl shadow">
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                <h3 class="text-lg font-semibold text-gray-900">Crear Nuevo Horario</h3>
+                <button type="button" class="btn btn-sm btn-circle btn-ghost ms-auto" data-modal-toggle="add-slot-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+            </div>
+            <form class="p-4 md:p-5" action="{{ url_for('admin.slots') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="space-y-4">
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900">Localidad</label>
+                        <select name="locality_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-2.5" required>
+                            {% for loc in localities %}
+                            <option value="{{ loc.id }}">{{ loc.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900">Trámite</label>
+                        <select name="procedure_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-2.5" required>
+                            {% for proc in procedures %}
+                            <option value="{{ proc.id }}">{{ proc.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900">Fecha</label>
+                        <input type="date" name="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-2.5" required>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900">Hora</label>
+                        <input type="time" name="time" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-2.5" required>
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900">Capacidad Máxima</label>
+                        <input type="number" name="capacity" value="1" min="1" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-2.5">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block mt-4">
+                    Guardar Horario
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

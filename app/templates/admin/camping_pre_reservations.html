@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8">
+  <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Pre-reservas</h1>
+  <p class="mt-2 text-slate-500">Confirmación manual, archivado y control de expiración automática (48h).</p>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-bold text-slate-900">Crear registro manual</h2>
+    <span class="text-xs font-bold uppercase text-slate-400">Origen: Admin</span>
+  </div>
+  <form method="POST" action="{{ url_for('admin.camping_pre_reservations') }}" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Servicio</label>
+      <select name="service_id" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2" required>
+        <option value="">Seleccionar</option>
+        {% for service in services %}
+        <option value="{{ service.id }}">{{ service.name_es }} ({{ service.available_units }}/{{ service.total_units }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Nombre completo</label>
+      <input type="text" name="full_name" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2" required>
+    </div>
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Email</label>
+      <input type="email" name="email" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2" required>
+    </div>
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Teléfono</label>
+      <input type="text" name="phone" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2" required>
+    </div>
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Huéspedes</label>
+      <input type="number" name="guests" min="1" value="1" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2" required>
+    </div>
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Idioma</label>
+      <select name="lang" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2">
+        <option value="es" selected>Español</option>
+        <option value="en">English</option>
+        <option value="pt">Português</option>
+      </select>
+    </div>
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Check-in</label>
+      <input type="date" name="check_in" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2" required>
+    </div>
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Check-out</label>
+      <input type="date" name="check_out" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2" required>
+    </div>
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Tipo de alta</label>
+      <select name="status" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2">
+        <option value="pendiente" selected>Pre-reserva (pendiente)</option>
+        <option value="confirmado">Reserva confirmada</option>
+      </select>
+    </div>
+    <div class="md:col-span-3">
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Notas</label>
+      <textarea name="notes" rows="2" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl block w-full p-2" placeholder="Opcional"></textarea>
+    </div>
+    <div class="md:col-span-3 flex justify-end">
+      <button class="btn btn-primary">Crear registro</button>
+    </div>
+  </form>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6">
+  <form method="GET" class="flex flex-wrap items-end gap-3">
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Estado</label>
+      <select name="status" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-2">
+        <option value="">Todos los estados</option>
+        <option value="pendiente" {% if status == 'pendiente' %}selected{% endif %}>Pendientes</option>
+        <option value="confirmado" {% if status == 'confirmado' %}selected{% endif %}>Confirmadas (Reserva)</option>
+        <option value="activo" {% if status == 'activo' %}selected{% endif %}>En Activo (Estadía)</option>
+        <option value="completado" {% if status == 'completado' %}selected{% endif %}>Completadas</option>
+        <option value="expirado" {% if status == 'expirado' %}selected{% endif %}>Expiradas (Bot)</option>
+        <option value="archivado_admin" {% if status == 'archivado_admin' %}selected{% endif %}>Archivadas (Admin)</option>
+      </select>
+    </div>
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Desde (Check-in)</label>
+      <input type="date" name="start_date" value="{{ start_date or '' }}" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-2">
+    </div>
+    <div>
+      <label class="block mb-1 text-xs font-bold text-slate-500 uppercase">Hasta (Check-in)</label>
+      <input type="date" name="end_date" value="{{ end_date or '' }}" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-2">
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-primary">Filtrar</button>
+      <button type="submit" formaction="{{ url_for('admin.export_camping_pre_reservations') }}" class="btn btn-success" title="Exportar CSV">
+        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        CSV
+      </button>
+      <a href="{{ url_for('admin.camping_pre_reservations') }}" class="btn btn-ghost">Limpiar</a>
+    </div>
+  </form>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50">
+      <tr>
+        <th class="p-3 text-left">Código</th>
+        <th class="p-3 text-left border-l border-slate-100">Cabaña/Parcela</th>
+        <th class="p-3 text-left border-l border-slate-100">Cliente</th>
+        <th class="p-3 text-left border-l border-slate-100">Origen</th>
+        <th class="p-3 text-left border-l border-slate-100">Fechas</th>
+        <th class="p-3 text-left border-l border-slate-100">Estado</th>
+        <th class="p-3 text-left border-l border-slate-100">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in reservations %}
+      <tr class="border-t border-slate-100 hover:bg-slate-50/30">
+        <td class="p-3 font-mono font-bold">{{ item.code }}</td>
+        <td class="p-3 border-l border-slate-100">{{ item.service.localized_name(item.lang) if item.service else '-' }}</td>
+        <td class="p-3 border-l border-slate-100">
+          <div class="font-bold">{{ item.full_name }}</div>
+          <div class="text-xs text-slate-400">{{ item.email }} · {{ item.phone }}</div>
+        </td>
+        <td class="p-3 border-l border-slate-100">
+          {% if item.source == 'admin' %}
+            <span class="badge badge-info badge-sm border-none bg-indigo-100 text-indigo-700 font-bold uppercase">Admin</span>
+          {% else %}
+            <span class="badge badge-ghost badge-sm border-none bg-slate-100 text-slate-600 font-bold uppercase">Web</span>
+          {% endif %}
+        </td>
+        <td class="p-3 border-l border-slate-100">
+          <div class="whitespace-nowrap">{{ item.check_in.strftime('%d/%m/%Y') }} <span class="text-slate-300">→</span> {{ item.check_out.strftime('%d/%m/%Y') }}</div>
+          <div class="text-[10px] text-slate-400">Ocupantes: {{ item.guests }}</div>
+        </td>
+        <td class="p-3 border-l border-slate-100">
+          {% if item.status == 'pendiente' %}
+            <span class="badge badge-warning badge-sm border-none bg-amber-100 text-amber-700 font-bold uppercase">Pendiente</span>
+            <div class="text-[9px] text-amber-600 mt-1">Expira: {{ item.expires_at.strftime('%H:%M %d/%m') }}</div>
+          {% elif item.status == 'confirmado' %}
+            <span class="badge badge-info badge-sm border-none bg-blue-100 text-blue-700 font-bold uppercase">Confirmada</span>
+          {% elif item.status == 'activo' %}
+            <span class="badge badge-primary badge-sm border-none bg-indigo-100 text-indigo-700 font-black uppercase">En Activo</span>
+            <div class="text-[9px] text-indigo-600 mt-1 italic">Ingresó: {{ item.checked_in_at.strftime('%d/%m %H:%M') if item.checked_in_at else '-' }}</div>
+          {% elif item.status == 'completado' %}
+            <span class="badge badge-success badge-sm border-none bg-emerald-100 text-emerald-700 font-bold uppercase">Completada</span>
+          {% elif item.status == 'expirado' %}
+            <span class="badge badge-ghost badge-sm border-none bg-slate-100 text-slate-500 font-bold uppercase">Expirada</span>
+          {% elif item.status == 'archivado_admin' %}
+            <span class="badge badge-error badge-sm border-none bg-rose-100 text-rose-700 font-bold uppercase">Archivada Admin</span>
+            {% if item.archive_reason %}
+            <div class="text-[10px] text-rose-500 mt-1 italic max-w-37.5 truncate" title="{{ item.archive_reason }}">Razón: {{ item.archive_reason }}</div>
+            {% endif %}
+          {% endif %}
+        </td>
+        <td class="p-3 border-l border-slate-100">
+          <div class="flex flex-wrap gap-2">
+            {% if item.status == 'pendiente' %}
+              <form method="POST" action="{{ url_for('admin.confirm_camping_pre_reservation', reservation_id=item.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button class="btn btn-xs btn-success">Confirmar</button>
+              </form>
+              <button type="button" onclick="abrirModalArchivado({{ item.id }})" class="btn btn-xs btn-error btn-outline">Rechazar/Archivar</button>
+            {% elif item.status == 'confirmado' %}
+              <form method="POST" action="{{ url_for('admin.check_in_reservation', reservation_id=item.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button class="btn btn-xs btn-primary">Registrar Ingreso</button>
+              </form>
+              <button type="button" onclick="abrirModalArchivado({{ item.id }})" class="btn btn-xs btn-error btn-outline">Cancelar</button>
+            {% elif item.status == 'activo' %}
+              <form method="POST" action="{{ url_for('admin.complete_active_reservation', reservation_id=item.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button class="btn btn-xs btn-success">Finalizar Estadía</button>
+              </form>
+              <button type="button" onclick="abrirModalArchivado({{ item.id }})" class="btn btn-xs btn-error btn-outline">Cancelar Estadía</button>
+            {% else %}
+              <span class="text-xs text-slate-300 italic">No hay acciones</span>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="p-10 text-center text-slate-400 bg-slate-50/30">No se encontraron registros para este filtro.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if pagination.pages > 1 %}
+<div class="flex justify-center mt-8">
+    <nav class="inline-flex items-center space-x-2">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('admin.camping_pre_reservations', page=pagination.prev_num, status=status, start_date=start_date, end_date=end_date) }}" class="btn btn-sm btn-outline">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </a>
+        {% endif %}
+        
+        <div class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-700">
+            Página {{ pagination.page }} de {{ pagination.pages }}
+        </div>
+
+        {% if pagination.has_next %}
+        <a href="{{ url_for('admin.camping_pre_reservations', page=pagination.next_num, status=status, start_date=start_date, end_date=end_date) }}" class="btn btn-sm btn-outline">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+
+<div id="modal-archivar" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
+  <div class="w-full max-w-lg rounded-2xl bg-white shadow-xl border border-slate-200">
+    <div class="px-5 py-4 border-b border-slate-100">
+      <h3 class="text-lg font-bold text-slate-900">Archivar / Cancelar reserva</h3>
+      <p class="text-sm text-slate-500 mt-1">Debes indicar el motivo antes de continuar.</p>
+    </div>
+    <form id="form-archivar" method="POST" class="p-5 space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <div>
+        <label for="input-reason" class="block text-sm font-semibold text-slate-700 mb-2">Motivo</label>
+        <textarea id="input-reason" name="reason" rows="4" class="textarea textarea-bordered w-full" placeholder="Ej: Cliente solicita cancelación por cambio de fecha" required></textarea>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" class="btn btn-sm btn-ghost" onclick="cerrarModalArchivado()">Cancelar</button>
+        <button type="submit" class="btn btn-sm btn-error">Confirmar archivado</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function abrirModalArchivado(id) {
+    const modal = document.getElementById('modal-archivar');
+    const form = document.getElementById('form-archivar');
+    const reasonInput = document.getElementById('input-reason');
+    form.action = `/admin/camping/pre-reservations/${id}/archive`;
+    reasonInput.value = '';
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => reasonInput.focus(), 0);
+}
+
+function cerrarModalArchivado() {
+    const modal = document.getElementById('modal-archivar');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+        cerrarModalArchivado();
+    }
+});
+
+document.getElementById('modal-archivar').addEventListener('click', function (event) {
+    if (event.target.id === 'modal-archivar') {
+        cerrarModalArchivado();
+    }
+});
+</script>
+{% endblock %}

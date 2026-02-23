@@ -1,0 +1,187 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Dashboard del Camping Arequita</h1>
+    <p class="mt-2 text-slate-500">Control de servicios, testimonios, pre-reservas y sugerencias.</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-4">
+    <a href="{{ url_for('admin.camping_services') }}" class="relative p-6 transition-all duration-300 bg-white shadow-sm rounded-3xl hover:shadow-lg group">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-slate-100 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M3 3h14v4H3V3zm0 5h14v9H3V8zm2 2v5h4v-5H5z"></path></svg>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-sm font-medium tracking-widest text-slate-500 uppercase">Servicios</h3>
+                <p class="text-3xl font-black text-slate-900">{{ total_services }}</p>
+                <p class="text-xs text-slate-400">Destacados: {{ featured_services }}</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="{{ url_for('admin.camping_amenities') }}" class="relative p-6 transition-all duration-300 bg-white shadow-sm rounded-3xl hover:shadow-lg group">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-teal-50 rounded-2xl text-teal-600 transition-colors">
+                <span class="text-3xl">✨</span>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-sm font-medium tracking-widest text-teal-600 uppercase">Comodidades</h3>
+                <p class="text-3xl font-black text-teal-600">Configurar</p>
+                <p class="text-xs text-slate-400">Gestionar Iconos</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="{{ url_for('admin.camping_testimonials') }}" class="relative p-6 transition-all duration-300 bg-white shadow-sm rounded-3xl hover:shadow-lg group">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-blue-50 rounded-2xl text-blue-600">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927C9.469 1.63 11.53 1.63 11.95 2.927l1.072 3.302a1 1 0 00.95.69h3.47c1.364 0 1.93 1.746.826 2.549l-2.808 2.04a1 1 0 00-.364 1.118l1.072 3.302c.42 1.297-1.064 2.37-2.168 1.568l-2.808-2.04a1 1 0 00-1.176 0l-2.808 2.04c-1.104.802-2.588-.27-2.168-1.568l1.072-3.302a1 1 0 00-.364-1.118L2.73 9.468c-1.104-.803-.538-2.55.826-2.55h3.47a1 1 0 00.95-.69l1.072-3.301z"></path></svg>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-sm font-medium tracking-widest text-blue-500 uppercase">Testimonios</h3>
+                <p class="text-3xl font-black text-blue-600">{{ total_testimonials }}</p>
+                <p class="text-xs text-slate-400">Publicados: {{ published_testimonials }}</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="{{ url_for('admin.camping_pre_reservations', status='pendiente') }}" class="relative p-6 transition-all duration-300 bg-white shadow-sm rounded-3xl hover:shadow-lg group">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-amber-50 rounded-2xl text-amber-600">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V5h2v4z"></path></svg>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-sm font-medium tracking-widest text-amber-500 uppercase">Pendientes</h3>
+                <p class="text-3xl font-black text-amber-600">{{ pending_pre_reservations }}</p>
+                <p class="text-xs text-slate-400">Esperando aprobación</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="{{ url_for('admin.camping_pre_reservations', status='activo') }}" class="relative p-6 transition-all duration-300 bg-white shadow-sm rounded-3xl hover:shadow-lg group">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-indigo-50 rounded-2xl text-indigo-600">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011-1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-sm font-medium tracking-widest text-indigo-500 uppercase">En Activo</h3>
+                <p class="text-3xl font-black text-indigo-600">{{ active_stays }}</p>
+                <p class="text-xs text-slate-400">Huéspedes en sitio</p>
+            </div>
+        </div>
+    </a>
+
+    <a href="{{ url_for('admin.camping_suggestions') }}" class="relative p-6 transition-all duration-300 bg-white shadow-sm rounded-3xl hover:shadow-lg group">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 p-3 bg-amber-50 rounded-2xl text-amber-600">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.8 2 11.45 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7z"></path></svg>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-sm font-medium tracking-widest text-amber-500 uppercase">Sugerencias</h3>
+                <p class="text-3xl font-black text-amber-600">{{ new_suggestions }}</p>
+                <p class="text-xs text-slate-400">Nuevas por revisar</p>
+            </div>
+        </div>
+    </a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div class="bg-white shadow-sm rounded-3xl overflow-hidden border border-slate-100">
+        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
+            <h2 class="text-lg font-bold text-slate-900">Últimas pre-reservas</h2>
+            <a href="{{ url_for('admin.camping_pre_reservations') }}" class="btn btn-xs btn-ghost text-blue-600">Ver todas</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-slate-500">
+                <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">Código</th>
+                        <th scope="col" class="px-6 py-3">Cliente</th>
+                        <th scope="col" class="px-6 py-3">Servicio</th>
+                        <th scope="col" class="px-6 py-3">Origen</th>
+                        <th scope="col" class="px-6 py-3">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in recent_pre_reservations %}
+                    <tr class="transition-colors border-b border-slate-100 bg-white hover:bg-slate-50/50">
+                        <td class="px-6 py-4 font-mono font-bold text-slate-900">{{ item.code }}</td>
+                        <td class="px-6 py-4 text-slate-600">{{ item.full_name }}</td>
+                        <td class="px-6 py-4 text-slate-500">{{ item.service.localized_name(item.lang) if item.service else '-' }}</td>
+                        <td class="px-6 py-4">
+                            {% if item.source == 'admin' %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-100 text-indigo-700">Admin</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 text-slate-600">Web</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if item.status == 'pendiente' %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-700">Pendiente</span>
+                            {% elif item.status == 'confirmado' %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700">Confirmado</span>
+                            {% elif item.status == 'activo' %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-100 text-indigo-700">Activo</span>
+                            {% elif item.status == 'completado' %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700">Completado</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 text-slate-500">{{ item.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-10 text-center text-slate-400">No hay pre-reservas registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-sm rounded-3xl overflow-hidden border border-slate-100">
+        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
+            <h2 class="text-lg font-bold text-slate-900">Últimas sugerencias</h2>
+            <a href="{{ url_for('admin.camping_suggestions') }}" class="btn btn-xs btn-ghost text-blue-600">Ver todas</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-slate-500">
+                <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">Fecha</th>
+                        <th scope="col" class="px-6 py-3">Nombre</th>
+                        <th scope="col" class="px-6 py-3">Categoría</th>
+                        <th scope="col" class="px-6 py-3">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in recent_suggestions %}
+                    <tr class="transition-colors border-b border-slate-100 bg-white hover:bg-slate-50/50">
+                        <td class="px-6 py-4 text-slate-500">{{ item.created_at.strftime('%d/%m/%Y %H:%M') if item.created_at else '-' }}</td>
+                        <td class="px-6 py-4 font-medium text-slate-900">{{ item.name }}</td>
+                        <td class="px-6 py-4 text-slate-600">{{ item.category_label }}</td>
+                        <td class="px-6 py-4">
+                            {% if item.status == 'nuevo' %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-sky-100 text-sky-700">Nuevo</span>
+                            {% elif item.status == 'revisado' %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700">Revisado</span>
+                            {% elif item.status == 'archivado' %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 text-slate-600">Archivado</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-50 text-slate-400">{{ item.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-10 text-center text-slate-400">No hay sugerencias registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

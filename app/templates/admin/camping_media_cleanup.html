@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8">
+  <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Limpieza de MinIO</h1>
+  <p class="mt-2 text-slate-500">Elimina imágenes sin uso para ahorrar almacenamiento. Total assets registrados: {{ total_assets }}</p>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50">
+      <tr>
+        <th class="p-3 text-left">Objeto</th>
+        <th class="p-3 text-left">Tipo</th>
+        <th class="p-3 text-left">Fecha</th>
+        <th class="p-3 text-left">Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for asset in orphan_assets %}
+      <tr class="border-t border-slate-100">
+        <td class="p-3">{{ asset.object_name }}</td>
+        <td class="p-3">{{ asset.usage_type }}</td>
+        <td class="p-3">{{ asset.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td class="p-3">
+          <form method="POST" onsubmit="return confirm('¿Eliminar imagen de MinIO?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="object_name" value="{{ asset.object_name }}" />
+            <button class="btn btn-xs btn-error btn-outline">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="p-6 text-center text-slate-400">No hay imágenes huérfanas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

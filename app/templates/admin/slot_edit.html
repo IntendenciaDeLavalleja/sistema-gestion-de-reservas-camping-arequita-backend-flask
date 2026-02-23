@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Editar Turno</h1>
+        <p class="mt-2 text-slate-500">Actualiza los datos del horario seleccionado.</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+        <form action="{{ url_for('admin.edit_slot', id=slot.id) }}" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-900">Localidad</label>
+                <select name="locality_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-2.5" required>
+                    {% for loc in localities %}
+                    <option value="{{ loc.id }}" {% if slot.locality_id == loc.id %}selected{% endif %}>{{ loc.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-900">Trámite</label>
+                <select name="procedure_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-2.5" required>
+                    {% for proc in procedures %}
+                    <option value="{{ proc.id }}" {% if slot.procedure_id == proc.id %}selected{% endif %}>{{ proc.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-900">Fecha</label>
+                <input type="date" name="date" value="{{ slot.date.strftime('%Y-%m-%d') }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-2.5" required>
+            </div>
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-900">Hora</label>
+                <input type="time" name="time" value="{{ slot.time.strftime('%H:%M') }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-2.5" required>
+            </div>
+            <div>
+                <label class="block mb-2 text-sm font-medium text-gray-900">Capacidad Máxima</label>
+                <input type="number" name="capacity" min="1" value="{{ slot.max_capacity }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl block w-full p-2.5" required>
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                <a href="{{ url_for('admin.slots') }}" class="btn btn-ghost">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

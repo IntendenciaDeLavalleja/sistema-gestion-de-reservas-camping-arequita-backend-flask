@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Editar Trámite</h1>
+        <p class="mt-2 text-slate-500">Actualiza la información del trámite seleccionado.</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+        <form action="{{ url_for('admin.edit_procedure', id=procedure.id) }}" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div>
+                <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Nombre del Trámite</label>
+                <input type="text" name="name" id="name" value="{{ procedure.name }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required>
+            </div>
+            <div>
+                <label for="category" class="block mb-2 text-sm font-medium text-gray-900">Categoría</label>
+                <input type="text" name="category" id="category" value="{{ procedure.category }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required>
+            </div>
+            <div>
+                <label for="cost" class="block mb-2 text-sm font-medium text-gray-900">Costo (Texto descriptivo)</label>
+                <input type="text" name="cost" id="cost" value="{{ procedure.cost }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5">
+            </div>
+            <div>
+                <label for="description" class="block mb-2 text-sm font-medium text-gray-900">Descripción</label>
+                <textarea name="description" id="description" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5">{{ procedure.description }}</textarea>
+            </div>
+            <div>
+                <label for="requirements" class="block mb-2 text-sm font-medium text-gray-900">Requisitos (Uno por línea)</label>
+                <textarea name="requirements" id="requirements" rows="6" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5">{% for req in procedure.requirements %}{{ req }}{% if not loop.last %}
+{% endif %}{% endfor %}</textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                <a href="{{ url_for('admin.procedures') }}" class="btn btn-ghost">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
