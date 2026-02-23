@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     libmariadb-dev \
     pkg-config \
     libmagic1 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -29,6 +30,10 @@ RUN chmod +x /app/entrypoint.sh
 
 # Expose port
 EXPOSE 5000
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -f http://localhost:5000/health || exit 1
 
 # Run entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]
