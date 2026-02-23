@@ -1,6 +1,6 @@
 import json
 import redis
-from ..redis_utils import build_redis_url_from_env
+from ..redis_utils import build_redis_url_from_env, _REDIS_PROBE_TIMEOUT
 
 
 class CacheService:
@@ -10,11 +10,24 @@ class CacheService:
             self.init_app(app)
 
     def init_app(self, app):
+        # Si el probe ya determinó que Redis no está disponible, no intentar.
+        if not app.config.get('REDIS_AVAILABLE', True):
+            app.logger.warning(
+                "CacheService: Redis no disponible, caché desactivado."
+            )
+            self.client = None
+            return
+
         redis_url = app.config.get('REDIS_URL') or build_redis_url_from_env()
         try:
-            self.client = redis.from_url(redis_url)
-            # Test connection
+            # Siempre usar timeouts explícitos para evitar colgar el worker.
+            self.client = redis.from_url(
+                redis_url,
+                socket_connect_timeout=_REDIS_PROBE_TIMEOUT,
+                socket_timeout=_REDIS_PROBE_TIMEOUT,
+            )
             self.client.ping()
+            app.logger.info("CacheService: conectado a Redis correctamente.")
         except Exception as e:
             app.logger.warning(f"No se pudo conectar a Redis para caché: {e}")
             self.client = None
