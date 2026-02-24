@@ -113,16 +113,23 @@ class MinioService:
 
     def get_file_url(self, filename, bucket_name=None):
         """
-        Retorna la URL pública construida manualmente o presignada si se requiere privada.
-        En este caso, construimos la URL pública basada en configuración.
+        Construye la URL pública de un objeto en MinIO.
+
+        Formato: {MINIO_PUBLIC_URL}/{MINIO_BUCKET_NAME}/{filename}
+
+        MINIO_PUBLIC_URL es la URL expuesta por Traefik/proxy (con https://).
+        MINIO_ENDPOINT es solo para la conexión interna de subida, nunca
+        se usa para generar URLs públicas.
         """
         bucket = bucket_name or current_app.config['MINIO_BUCKET_NAME']
-        public_base = current_app.config.get('MINIO_PUBLIC_URL')
-        
+        public_base = current_app.config.get('MINIO_PUBLIC_URL', '').rstrip('/')
+
         if public_base:
-            return f"{public_base}/{filename}"
-        
-        # Fallback a URL de endpoint (asume que el bucket es público)
+            # URL pública correcta: protocolo + dominio + bucket + objeto
+            return f"{public_base}/{bucket}/{filename}"
+
+        # Fallback cuando no hay MINIO_PUBLIC_URL configurada (desarrollo local).
+        # Construye la URL usando el endpoint interno con el protocolo correcto.
         endpoint = current_app.config['MINIO_ENDPOINT']
         protocol = "https" if current_app.config.get('MINIO_SECURE', False) else "http"
         return f"{protocol}://{endpoint}/{bucket}/{filename}"
