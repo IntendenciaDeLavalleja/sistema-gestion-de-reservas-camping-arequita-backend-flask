@@ -51,7 +51,7 @@ def _init_limiter_safe(app):
 
 
 def create_app(config_class=Config):
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../public', static_url_path='/public')
     app.config.from_object(config_class)
 
     # Probar Redis y almacenar disponibilidad en app.config['REDIS_AVAILABLE'].

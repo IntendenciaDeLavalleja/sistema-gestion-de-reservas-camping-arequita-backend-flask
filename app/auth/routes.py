@@ -35,7 +35,14 @@ def login():
         session.pop('captcha_result', None)
         log_activity("WEB_LOGIN_CAPTCHA_FAIL", f"Captcha fallido para usuario: {username}")
         flash('Captcha incorrecto. Intenta de nuevo.', 'error')
-        return redirect(url_for('auth.login'))
+        
+        # Generar nuevo captcha para el reintento
+        num1 = random.randint(1, 10)
+        num2 = random.randint(1, 10)
+        session['captcha_result'] = num1 + num2
+        captcha_question = f"¿Cuánto es {num1} + {num2}?"
+        
+        return render_template('admin/login.html', captcha_question=captcha_question)
 
     # Clear captcha after validation
     session.pop('captcha_result', None)
@@ -61,7 +68,14 @@ def login():
     
     log_activity("WEB_LOGIN_FAIL", f"Intento de login fallido: {username}")
     flash('Usuario o contraseña incorrectos', 'error')
-    return render_template('admin/login.html')
+    
+    # Generar nuevo captcha para el reintento
+    num1 = random.randint(1, 10)
+    num2 = random.randint(1, 10)
+    session['captcha_result'] = num1 + num2
+    captcha_question = f"¿Cuánto es {num1} + {num2}?"
+    
+    return render_template('admin/login.html', captcha_question=captcha_question)
 
 @auth_bp.route('/verify-2fa', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
