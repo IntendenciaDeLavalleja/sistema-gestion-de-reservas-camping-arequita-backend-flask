@@ -6,8 +6,8 @@
   <p class="mt-2 text-slate-500">Elimina imágenes sin uso para ahorrar almacenamiento. Total assets registrados: {{ total_assets }}</p>
 </div>
 
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
-  <table class="w-full text-sm">
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 admin-table-wrap">
+  <table class="admin-table w-full text-sm">
     <thead class="bg-slate-50">
       <tr>
         <th class="p-3 text-left">Objeto</th>
@@ -19,7 +19,7 @@
     <tbody>
       {% for asset in orphan_assets %}
       <tr class="border-t border-slate-100">
-        <td class="p-3">{{ asset.object_name }}</td>
+        <td class="p-3 admin-truncate" title="{{ asset.object_name }}">{{ asset.object_name }}</td>
         <td class="p-3">{{ asset.usage_type }}</td>
         <td class="p-3">{{ asset.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
         <td class="p-3">

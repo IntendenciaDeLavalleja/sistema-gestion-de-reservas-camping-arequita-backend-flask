@@ -4,6 +4,7 @@ from .redis_utils import build_redis_url_from_env
 
 load_dotenv()
 
+
 def _parse_list_from_env(name: str) -> list[str]:
     raw = os.environ.get(name)
     if raw:
@@ -13,9 +14,12 @@ def _parse_list_from_env(name: str) -> list[str]:
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or os.environ.get('DATABASE_URI')
+    SQLALCHEMY_DATABASE_URI = (
+        os.environ.get('DATABASE_URL')
+        or os.environ.get('DATABASE_URI')
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
+
     # Mail Config
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
@@ -30,7 +34,10 @@ class Config:
     MINIO_ACCESS_KEY = os.environ.get('MINIO_ACCESS_KEY')
     MINIO_SECRET_KEY = os.environ.get('MINIO_SECRET_KEY')
     MINIO_SECURE = os.environ.get('MINIO_SECURE', 'False') == 'True'
-    MINIO_BUCKET_NAME = os.environ.get('MINIO_BUCKET_NAME', 'ombudsman-uploads')
+    MINIO_BUCKET_NAME = os.environ.get(
+        'MINIO_BUCKET_NAME',
+        'ombudsman-uploads',
+    )
     MINIO_PUBLIC_URL = os.environ.get('MINIO_PUBLIC_URL')
 
     # Frontend URL for email links
@@ -44,6 +51,29 @@ class Config:
     REDIS_URL = build_redis_url_from_env(os.environ)
 
     # Flask-Limiter
-    RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
+    RATELIMIT_STORAGE_URI = os.environ.get(
+        'RATELIMIT_STORAGE_URI',
+        'memory://',
+    )
 
     CORS_ALLOWED_ORIGINS = _parse_list_from_env('CORS_ORIGINS')
+
+    PROPAGATE_EXCEPTIONS = False
+    TRAP_HTTP_EXCEPTIONS = False
+
+    _is_sqlite = bool(
+        SQLALCHEMY_DATABASE_URI
+        and SQLALCHEMY_DATABASE_URI.startswith('sqlite')
+    )
+    if _is_sqlite:
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,
+        }
+    else:
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,
+            'pool_recycle': int(os.environ.get('DB_POOL_RECYCLE', '1800')),
+            'pool_timeout': int(os.environ.get('DB_POOL_TIMEOUT', '30')),
+            'pool_size': int(os.environ.get('DB_POOL_SIZE', '10')),
+            'max_overflow': int(os.environ.get('DB_MAX_OVERFLOW', '20')),
+        }

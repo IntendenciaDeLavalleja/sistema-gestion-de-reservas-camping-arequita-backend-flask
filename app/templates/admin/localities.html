@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="mb-8 flex justify-between items-center">
+<div class="admin-page-header mb-8">
     <div>
         <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Gestión de Localidades</h1>
         <p class="mt-2 text-slate-500">Administra los puntos de atención en el departamento.</p>
@@ -13,7 +13,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for locality in localities %}
-    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center">
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 admin-page-header">
         <div>
             <h3 class="text-lg font-bold text-slate-900">{{ locality.name }}</h3>
             <p class="text-sm text-slate-500">{{ locality.slots.count() }} turnos configurados</p>

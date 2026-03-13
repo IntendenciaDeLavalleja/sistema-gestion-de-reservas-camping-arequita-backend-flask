@@ -44,7 +44,7 @@
         <p class="mt-1 text-xs text-blue-600">Tamaño recomendado: <strong>800x600px</strong> (Relación aspecto 4:3).</p>
       </div>
 
-      <div class="flex items-center justify-between pt-2">
+      <div class="admin-page-header pt-2">
         <label class="label cursor-pointer justify-start gap-3">
           <input type="checkbox" name="is_published" class="checkbox checkbox-primary" checked /> 
           <span class="font-medium text-slate-700">Publicar inmediatamente</span>
@@ -80,8 +80,8 @@
   </div>
 </div>
 
-<div class="mt-8 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-  <table class="w-full text-sm">
+<div class="mt-8 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden admin-table-wrap">
+  <table class="admin-table w-full text-sm">
     <thead class="bg-slate-50 border-b border-slate-200">
       <tr>
         <th class="p-4 text-left font-semibold text-slate-700">Foto / Autor</th>
@@ -118,7 +118,7 @@
           {% endif %}
         </td>
         <td class="p-4">
-          <div class="flex items-center gap-4">
+          <div class="admin-inline-actions items-center">
             <a href="{{ url_for('admin.edit_camping_testimonial', testimonial_id=testimonial.id) }}" class="btn btn-xs btn-info btn-outline">Editar</a>
             <form method="POST" action="{{ url_for('admin.delete_camping_testimonial', testimonial_id=testimonial.id) }}" onsubmit="return confirm('¿Eliminar este testimonio definitivamente?');">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />

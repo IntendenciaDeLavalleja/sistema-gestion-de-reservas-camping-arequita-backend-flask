@@ -1,4 +1,5 @@
-from flask import Flask
+import uuid
+from flask import Flask, g, request
 from flask_cors import CORS
 from .config import Config
 from .extensions import db, migrate, login_manager, mail, ma, limiter, csrf
@@ -6,6 +7,7 @@ from .services.minio_service import minio_service
 from .services.cache_service import cache_service
 from .metrics import init_metrics
 from .redis_utils import init_redis
+from .error_handlers import register_error_handlers
 
 
 def _init_limiter_safe(app):
@@ -92,6 +94,23 @@ def create_app(config_class=Config):
     # Inicializar monitoreo
     init_metrics(app)
 
+    @app.before_request
+    def attach_request_id():
+        # Correlation id para rastrear errores entre Gunicorn y Flask.
+        g.request_id = request.headers.get('X-Request-ID') or str(uuid.uuid4())
+
+    @app.after_request
+    def add_request_id_header(response):
+        request_id = getattr(g, 'request_id', None)
+        if request_id:
+            response.headers['X-Request-ID'] = request_id
+        return response
+
+    @app.teardown_request
+    def teardown_request(_exc):
+        # Garantiza limpieza de sesión por request para evitar sesiones sucias.
+        db.session.remove()
+
     # Registrar blueprints
     from .health import health_bp
     csrf.exempt(health_bp)
@@ -103,6 +122,9 @@ def create_app(config_class=Config):
 
     from .admin import admin_bp
     app.register_blueprint(admin_bp, url_prefix='/admin')
+
+    # Registrar handlers globales de errores al final para cubrir toda la app.
+    register_error_handlers(app)
 
     # Registrar comandos CLI
     from .commands import (

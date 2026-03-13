@@ -3,6 +3,8 @@ from minio.error import S3Error
 from flask import current_app
 import io
 import uuid
+import urllib3
+
 
 class MinioService:
     def __init__(self, app=None):
@@ -15,13 +17,25 @@ class MinioService:
         access_key = app.config.get('MINIO_ACCESS_KEY')
         secret_key = app.config.get('MINIO_SECRET_KEY')
         secure = app.config.get('MINIO_SECURE', False)
-        
+
         if minio_endpoint and access_key and secret_key:
+            http_client = urllib3.PoolManager(
+                timeout=urllib3.Timeout(connect=2.0, read=8.0),
+                retries=urllib3.Retry(
+                    total=2,
+                    backoff_factor=0.2,
+                    status_forcelist=[500, 502, 503, 504],
+                    allowed_methods=frozenset(
+                        ['GET', 'PUT', 'HEAD', 'DELETE']
+                    ),
+                ),
+            )
             self.client = Minio(
                 minio_endpoint,
                 access_key=access_key,
                 secret_key=secret_key,
-                secure=secure
+                secure=secure,
+                http_client=http_client,
             )
             self._ensure_bucket_exists(app.config.get('MINIO_BUCKET_NAME'))
 
@@ -31,8 +45,9 @@ class MinioService:
         try:
             if not self.client.bucket_exists(bucket_name):
                 self.client.make_bucket(bucket_name)
-            
-            # Asegurar SIEMPRE política pública para lectura (evita que las imágenes "vencen"
+
+            # Asegurar SIEMPRE política pública para lectura.
+            # Evita que las imágenes "vencen" si alguien cambia la política.
             # si alguien cambia la política manualmente a privada)
             import json
             policy = {
@@ -62,9 +77,9 @@ class MinioService:
 
         if content_type != 'image/webp':
             raise ValueError('Solo se permiten imágenes en formato WEBP')
-        
+
         bucket = bucket_name or current_app.config['MINIO_BUCKET_NAME']
-        
+
         # Generar nombre único
         filename = f"{uuid.uuid4()}"
         ext = content_type.split('/')[-1] if '/' in content_type else ''
@@ -79,7 +94,7 @@ class MinioService:
             # Asumimos que es un objeto FileStorage de Flask
             file_stream = file_data.stream
             # Mover cursor al final para obtener longitud
-            file_data.seek(0, 2) 
+            file_data.seek(0, 2)
             length = file_data.tell()
             file_data.seek(0)
 
@@ -90,7 +105,7 @@ class MinioService:
             length,
             content_type=content_type
         )
-        
+
         return filename
 
     def list_objects(self, bucket_name=None):
@@ -122,16 +137,24 @@ class MinioService:
         se usa para generar URLs públicas.
         """
         bucket = bucket_name or current_app.config['MINIO_BUCKET_NAME']
-        public_base = current_app.config.get('MINIO_PUBLIC_URL', '').rstrip('/')
+        public_base = current_app.config.get(
+            'MINIO_PUBLIC_URL',
+            '',
+        ).rstrip('/')
 
         if public_base:
             # URL pública correcta: protocolo + dominio + bucket + objeto
             return f"{public_base}/{bucket}/{filename}"
 
-        # Fallback cuando no hay MINIO_PUBLIC_URL configurada (desarrollo local).
-        # Construye la URL usando el endpoint interno con el protocolo correcto.
+        # Fallback cuando no hay MINIO_PUBLIC_URL configurada.
+        # Construye la URL usando el endpoint interno con su protocolo.
         endpoint = current_app.config['MINIO_ENDPOINT']
-        protocol = "https" if current_app.config.get('MINIO_SECURE', False) else "http"
+        protocol = (
+            'https'
+            if current_app.config.get('MINIO_SECURE', False)
+            else 'http'
+        )
         return f"{protocol}://{endpoint}/{bucket}/{filename}"
+
 
 minio_service = MinioService()

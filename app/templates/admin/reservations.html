@@ -7,7 +7,7 @@
 </div>
 
 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
-    <div class="flex items-center justify-between mb-4">
+    <div class="admin-page-header mb-4">
         <h2 class="text-lg font-bold text-slate-900">Crear reserva manual</h2>
         <span class="text-xs font-bold uppercase text-slate-400">Origen: Admin</span>
     </div>
@@ -68,7 +68,7 @@
             <label class="block mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Buscar</label>
             <input type="text" name="search" value="{{ search }}" placeholder="Código, email o CI" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
         </div>
-        <div class="flex gap-2">
+        <div class="admin-inline-actions">
             <button type="submit" class="btn btn-primary">Filtrar</button>
             <button type="submit" formaction="{{ url_for('admin.export_reservations') }}" formmethod="GET" class="btn btn-success" title="Exportar CSV">
                 <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -78,8 +78,8 @@
     </form>
 </div>
 
-<div class="bg-white shadow-sm rounded-3xl overflow-hidden border border-slate-100">
-    <table class="w-full text-sm text-left text-slate-500">
+<div class="bg-white shadow-sm rounded-3xl overflow-hidden border border-slate-100 admin-table-wrap">
+    <table class="admin-table w-full text-sm text-left text-slate-500">
         <thead class="text-xs text-slate-700 uppercase bg-slate-50">
             <tr>
                 <th scope="col" class="px-6 py-3">Código</th>
@@ -130,7 +130,7 @@
                 </td>
                 <td class="px-6 py-4">
                     {% if status_filter == 'active' %}
-                    <div class="flex items-center gap-3">
+                        <div class="admin-inline-actions items-center">
                         <form action="{{ url_for('admin.mark_reservation_attended', id=res.id, status=status_filter) }}" method="POST">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                             <button type="submit" class="btn btn-xs btn-success btn-outline">Efectivizar</button>
@@ -159,7 +159,7 @@
 </div>
 {% if pagination.pages > 1 %}
 <div class="flex justify-center mt-8">
-    <nav class="inline-flex -space-x-px">
+    <nav class="admin-inline-actions">
         {% for p in pagination.iter_pages() %}
             {% if p %}
                 <a href="{{ url_for('admin.reservations', page=p, status=status_filter, search=search) }}" class="btn btn-sm {% if p == pagination.page %}btn-primary{% else %}btn-outline{% endif %}">

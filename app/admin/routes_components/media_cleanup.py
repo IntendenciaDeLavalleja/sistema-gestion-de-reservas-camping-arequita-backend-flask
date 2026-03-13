@@ -10,18 +10,22 @@ from .. import admin_bp
 @login_required
 def camping_media_cleanup():
     if request.method == 'POST':
-        object_name = (request.form.get('object_name') or '').strip()
-        if not object_name:
-            flash('Objeto inválido', 'error')
-            return redirect(url_for('admin.camping_media_cleanup'))
+        try:
+            object_name = (request.form.get('object_name') or '').strip()
+            if not object_name:
+                flash('Objeto inválido', 'error')
+                return redirect(url_for('admin.camping_media_cleanup'))
 
-        if minio_service.remove_object(object_name):
-            MediaAsset.query.filter_by(object_name=object_name).delete()
-            db.session.commit()
-            log_activity('MEDIA_DELETE', f'Objeto MinIO eliminado: {object_name}')
-            flash('Imagen eliminada de MinIO', 'success')
-        else:
-            flash('No se pudo eliminar el objeto en MinIO', 'error')
+            if minio_service.remove_object(object_name):
+                MediaAsset.query.filter_by(object_name=object_name).delete()
+                db.session.commit()
+                log_activity('MEDIA_DELETE', f'Objeto MinIO eliminado: {object_name}')
+                flash('Imagen eliminada de MinIO', 'success')
+            else:
+                flash('No se pudo eliminar el objeto en MinIO', 'error')
+        except Exception:
+            db.session.rollback()
+            flash('No se pudo completar la limpieza de medios', 'error')
 
         return redirect(url_for('admin.camping_media_cleanup'))
 

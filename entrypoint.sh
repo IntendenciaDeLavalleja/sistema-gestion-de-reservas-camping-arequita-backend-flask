@@ -14,4 +14,4 @@ mkdir -p "$PROMETHEUS_MULTIPROC_DIR"
 
 # Start Gunicorn
 echo "Starting Gunicorn..."
-exec gunicorn -w 4 -k gthread -b 0.0.0.0:5000 "app:create_app()"
+exec gunicorn -c /app/gunicorn.conf.py "app:create_app()"

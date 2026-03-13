@@ -133,8 +133,8 @@
   </div>
 </div>
 
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 mt-6 overflow-x-auto">
-  <table class="w-full text-sm">
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200 mt-6 admin-table-wrap">
+  <table class="admin-table w-full text-sm">
     <thead class="bg-slate-50">
       <tr>
         <th class="p-3 text-left">Galería</th>
@@ -151,9 +151,9 @@
       {% for service in services %}
       {% set gallery = service.images.all() %}
       <tr class="border-t border-slate-100">
-        <td class="p-3">
+        <td class="p-3 admin-nowrap">
           {% if gallery %}
-          <div class="flex gap-1">
+          <div class="flex gap-1 min-w-max">
             {% for image in gallery[:3] %}
             <img src="{{ image.url }}" alt="{{ service.slug }}" class="w-12 h-10 rounded object-cover border border-slate-200" />
             {% endfor %}
@@ -162,14 +162,14 @@
           <span class="text-xs text-slate-400">Sin imágenes</span>
           {% endif %}
         </td>
-        <td class="p-3 font-medium">{{ service.slug }}</td>
+        <td class="p-3 font-medium admin-truncate" title="{{ service.slug }}">{{ service.slug }}</td>
         <td class="p-3">{{ service.service_type }}</td>
-        <td class="p-3">{{ service.name_es }}</td>
-        <td class="p-3">{{ service.available_units }} / {{ service.total_units }}</td>
-        <td class="p-3">{{ service.price }} {{ service.currency }}</td>
+        <td class="p-3 admin-truncate" title="{{ service.name_es }}">{{ service.name_es }}</td>
+        <td class="p-3 admin-nowrap">{{ service.available_units }} / {{ service.total_units }}</td>
+        <td class="p-3 admin-nowrap">{{ service.price }} {{ service.currency }}</td>
         <td class="p-3">{{ 'Activo' if service.is_active else 'Inactivo' }}</td>
         <td class="p-3">
-          <div class="flex items-center gap-3">
+          <div class="admin-inline-actions items-center">
             <a href="{{ url_for('admin.edit_camping_service', service_id=service.id) }}" class="btn btn-xs btn-info btn-outline">Editar</a>
             <button type="button" 
                     data-modal-target="delete-modal" 

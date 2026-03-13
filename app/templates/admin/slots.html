@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="mb-8 flex justify-between items-center">
+<div class="admin-page-header mb-8">
     <div>
         <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Configuración de Turnos</h1>
         <p class="mt-2 text-slate-500">Define los horarios disponibles por localidad.</p>
@@ -32,8 +32,8 @@
     </form>
 </div>
 
-<div class="bg-white shadow-sm rounded-3xl overflow-hidden border border-slate-100">
-    <table class="w-full text-sm text-left text-slate-500">
+<div class="bg-white shadow-sm rounded-3xl overflow-hidden border border-slate-100 admin-table-wrap">
+    <table class="admin-table w-full text-sm text-left text-slate-500">
         <thead class="text-xs text-slate-700 uppercase bg-slate-50">
             <tr>
                 <th scope="col" class="px-6 py-3">Localidad</th>
@@ -57,7 +57,7 @@
                     </span>
                 </td>
                 <td class="px-6 py-4">
-                    <div class="flex items-center gap-3">
+                    <div class="admin-inline-actions items-center">
                         <a href="{{ url_for('admin.edit_slot', id=slot.id) }}" class="btn btn-xs btn-info btn-outline">Editar</a>
                         <form action="{{ url_for('admin.delete_slot', id=slot.id) }}" method="POST" onsubmit="return confirm('¿Eliminar este turno?');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="mb-8 flex justify-between items-center">
+<div class="admin-page-header mb-8">
     <div>
         <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Gestión de Trámites</h1>
         <p class="mt-2 text-slate-500">Configura los requisitos y costos de cada trámite.</p>
@@ -14,12 +14,12 @@
 <div class="space-y-4">
     {% for procedure in procedures %}
     <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-        <div class="flex justify-between items-start mb-4">
+        <div class="admin-page-header mb-4">
             <div>
                 <h3 class="text-xl font-bold text-slate-900">{{ procedure.name }}</h3>
                 <p class="text-emerald-600 font-semibold">{{ procedure.cost if procedure.cost else 'Sin costo' }}</p>
             </div>
-            <div class="flex gap-2">
+            <div class="admin-inline-actions">
                 <a href="{{ url_for('admin.edit_procedure', id=procedure.id) }}" class="btn btn-sm btn-circle btn-ghost text-blue-600 hover:text-blue-700" title="Editar">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </a>
